@@ -215,8 +215,27 @@ function animateDog() {
 
   switch (gameState.currentAnimation) {
     case "idle":
-      dog.rotation.y = Math.sin(time) * 0.1;
-      dog.position.y = baseHeight;
+      // Random wandering movement
+      const wanderRadius = 3;
+      const wanderSpeed = 0.3;
+
+      // Calculate target position using time-based sine waves with different frequencies
+      const targetX =
+        Math.sin(time * 0.4) * Math.cos(time * 0.3) * wanderRadius;
+      const targetZ =
+        Math.cos(time * 0.3) * Math.sin(time * 0.5) * wanderRadius;
+
+      // Smoothly move towards target
+      dog.position.x += (targetX - dog.position.x) * 0.02;
+      dog.position.z += (targetZ - dog.position.z) * 0.02;
+      dog.position.y = baseHeight + Math.sin(time * 2) * 0.05; // Gentle bobbing
+
+      // Rotate to face movement direction
+      const angle = Math.atan2(
+        targetX - dog.position.x,
+        targetZ - dog.position.z
+      );
+      dog.rotation.y = angle;
       break;
     case "happy":
       dog.rotation.y = Math.sin(time * 2) * 0.3;
