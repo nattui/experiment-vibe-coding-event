@@ -3,39 +3,139 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bun Web App</title>
+    <title>Pixel Pets</title>
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Oxygen, Ubuntu, Cantarell, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-        line-height: 1.6;
+        font-family: "Press Start 2P", monospace;
+        background-color: #2c2137;
+        color: #ffffff;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
       }
-      .container {
-        text-align: center;
+      .game-container {
+        background-color: #1a1a1a;
+        border: 4px solid #4a4a4a;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+      .pet-area {
+        background-color: #2a2a2a;
+        border: 2px solid #4a4a4a;
+        border-radius: 4px;
+        padding: 20px;
+        margin: 20px 0;
+        min-height: 300px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .pet {
+        font-size: 64px;
+        position: absolute;
+        transition: transform 0.2s;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 20px;
       }
       button {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        cursor: pointer;
-        background-color: #646cff;
+        background-color: #4a4a4a;
         color: white;
-        border: none;
-        border-radius: 4px;
+        border: 2px solid #666;
+        padding: 10px;
+        font-family: "Press Start 2P", monospace;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
       }
       button:hover {
-        background-color: #535bf2;
+        background-color: #666;
+        transform: translateY(-2px);
+      }
+      .status {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 10px;
+        background-color: #2a2a2a;
+        border-radius: 4px;
+      }
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .status-icon {
+        font-size: 24px;
+      }
+      .inventory {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .item {
+        background-color: #2a2a2a;
+        border: 2px solid #4a4a4a;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+      }
+      .item:hover {
+        background-color: #3a3a3a;
+      }
+      .item img {
+        width: 32px;
+        height: 32px;
+        image-rendering: pixelated;
       }
     </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <div class="container">
-      <h1>Welcome to Bun Web App</h1>
-      <p>This is a simple web application served with Bun!</p>
-      <button id="clickMe">Click me!</button>
-      <p id="message"></p>
+    <div class="game-container">
+      <h1 style="text-align: center; color: #ff6b6b">Pixel Pets</h1>
+      <div class="status">
+        <div class="status-item">
+          <span class="status-icon">😊</span>
+          <span id="happiness">100%</span>
+        </div>
+        <div class="status-item">
+          <span class="status-icon">🍖</span>
+          <span id="hunger">100%</span>
+        </div>
+        <div class="status-item">
+          <span class="status-icon">⚡</span>
+          <span id="energy">100%</span>
+        </div>
+      </div>
+      <div class="pet-area">
+        <span class="pet" id="pet">🐕</span>
+      </div>
+      <div class="controls">
+        <button onclick="play()">Play</button>
+        <button onclick="feed()">Feed</button>
+        <button onclick="sleep()">Sleep</button>
+        <button onclick="pet()">Pet</button>
+        <button onclick="walk()">Walk</button>
+        <button onclick="train()">Train</button>
+      </div>
+      <div class="inventory" id="inventory">
+        <!-- Items will be added here dynamically -->
+      </div>
     </div>
     <script src="./src/client.js"></script>
   </body>
