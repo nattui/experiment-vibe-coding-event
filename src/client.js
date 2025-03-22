@@ -22,6 +22,7 @@ const gameState = {
 let scene, camera, renderer, dog, ground, controls;
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
+let environmentItems = []; // Array to store environment items
 
 function init() {
   // Scene setup
@@ -139,34 +140,135 @@ function createDog() {
 }
 
 function createItems() {
-  // Create some interactive items in the scene - smaller size
+  // Create dog-related items in the scene
   const items = [
     {
       geometry: new THREE.SphereGeometry(0.15, 16, 16),
-      color: 0xff0000,
+      color: 0xff6b6b,
+      type: "ball",
+      animation: "bounce",
+      scale: 1,
+    },
+    {
+      geometry: new THREE.CylinderGeometry(0.2, 0.3, 0.15, 16),
+      color: 0xe3dac9,
+      type: "bowl",
+      animation: "static",
+      scale: 1,
+    },
+    {
+      geometry: new THREE.BoxGeometry(0.4, 0.2, 0.15),
+      color: 0xf5d0c5,
+      type: "bone",
+      animation: "spin",
+      scale: 1,
+    },
+    {
+      geometry: new THREE.ConeGeometry(0.15, 0.3, 16),
+      color: 0x4a90e2,
       type: "toy",
+      animation: "float",
+      scale: 1,
     },
     {
       geometry: new THREE.BoxGeometry(0.25, 0.25, 0.25),
-      color: 0x00ff00,
-      type: "food",
-    },
-    {
-      geometry: new THREE.CylinderGeometry(0.1, 0.1, 0.25, 16),
-      color: 0x0000ff,
+      color: 0x7bed9f,
       type: "treat",
+      animation: "rotate",
+      scale: 0.8,
     },
   ];
 
-  items.forEach((item, index) => {
-    const material = new THREE.MeshStandardMaterial({ color: item.color });
-    const mesh = new THREE.Mesh(item.geometry, material);
-    mesh.position.set((index - 1) * 1.5, 0.25, (index - 1) * 1);
+  // Create multiple items at random positions
+  for (let i = 0; i < 20; i++) {
+    const itemType = items[i % items.length];
+    const material = new THREE.MeshStandardMaterial({
+      color: itemType.color,
+      emissive: itemType.color,
+      emissiveIntensity: 0.2,
+      roughness: 0.3,
+      metalness: 0.2,
+    });
+    const mesh = new THREE.Mesh(itemType.geometry, material);
+
+    // Random position within a circle
+    const radius = 4;
+    const angle = Math.random() * Math.PI * 2;
+    const x = Math.cos(angle) * radius * Math.random();
+    const z = Math.sin(angle) * radius * Math.random();
+
+    mesh.position.set(x, 0.25, z);
+    mesh.scale.multiplyScalar(itemType.scale);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    mesh.userData.type = item.type;
+    mesh.userData.type = itemType.type;
+    mesh.userData.animation = itemType.animation;
+    mesh.userData.startY = mesh.position.y;
+    mesh.userData.startTime = Math.random() * Math.PI * 2;
+    mesh.userData.rotationSpeed = 0.5 + Math.random();
+
     scene.add(mesh);
+    environmentItems.push(mesh);
+  }
+
+  // Create a dog house
+  const houseWidth = 1.5;
+  const houseHeight = 1.2;
+  const houseDepth = 1.5;
+
+  const dogHouse = new THREE.Group();
+
+  // Main house body
+  const houseGeometry = new THREE.BoxGeometry(
+    houseWidth,
+    houseHeight,
+    houseDepth
+  );
+  const houseMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8b4513,
+    roughness: 0.8,
+    metalness: 0.2,
   });
+  const house = new THREE.Mesh(houseGeometry, houseMaterial);
+  house.position.y = houseHeight / 2;
+  house.castShadow = true;
+  house.receiveShadow = true;
+
+  // Roof
+  const roofGeometry = new THREE.ConeGeometry(
+    houseWidth * 0.7,
+    houseHeight * 0.5,
+    4
+  );
+  const roofMaterial = new THREE.MeshStandardMaterial({
+    color: 0x654321,
+    roughness: 0.9,
+    metalness: 0.1,
+  });
+  const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+  roof.position.y = houseHeight + houseHeight * 0.25;
+  roof.rotation.y = Math.PI / 4;
+  roof.castShadow = true;
+
+  // Door frame
+  const doorWidth = houseWidth * 0.4;
+  const doorHeight = houseHeight * 0.6;
+  const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.1);
+  const doorMaterial = new THREE.MeshStandardMaterial({
+    color: 0x4a4a4a,
+    roughness: 0.7,
+    metalness: 0.3,
+  });
+  const door = new THREE.Mesh(doorGeometry, doorMaterial);
+  door.position.set(0, doorHeight / 2, houseDepth / 2);
+
+  dogHouse.add(house);
+  dogHouse.add(roof);
+  dogHouse.add(door);
+
+  // Position the dog house
+  dogHouse.position.set(-3, 0, -3);
+  scene.add(dogHouse);
 }
 
 function onWindowResize() {
@@ -200,6 +302,38 @@ function animate() {
 
   // Update controls
   controls.update();
+
+  // Animate environment items
+  const time = Date.now() * 0.001;
+  environmentItems.forEach((item) => {
+    switch (item.userData.animation) {
+      case "bounce":
+        item.position.y =
+          item.userData.startY +
+          Math.abs(Math.sin(time + item.userData.startTime)) * 0.5;
+        item.rotation.y += 0.02;
+        break;
+      case "static":
+        // No animation for static items like the bowl
+        break;
+      case "spin":
+        item.rotation.z = time * item.userData.rotationSpeed;
+        item.position.y =
+          item.userData.startY + Math.sin(time + item.userData.startTime) * 0.1;
+        break;
+      case "float":
+        item.position.y =
+          item.userData.startY + Math.sin(time + item.userData.startTime) * 0.3;
+        item.rotation.x = Math.sin(time + item.userData.startTime) * 0.2;
+        item.rotation.z = Math.cos(time + item.userData.startTime) * 0.2;
+        break;
+      case "rotate":
+        item.rotation.y = time * item.userData.rotationSpeed;
+        item.position.y =
+          item.userData.startY + Math.sin(time + item.userData.startTime) * 0.2;
+        break;
+    }
+  });
 
   // Animate dog based on current animation
   animateDog();
