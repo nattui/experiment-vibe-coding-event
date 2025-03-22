@@ -68,14 +68,59 @@ function init() {
   controls.maxPolarAngle = Math.PI / 2; // Prevent camera going below ground
   controls.enablePan = false; // Disable panning for simplicity
 
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // increased ambient light
+  // Enhanced Lighting System
+  // Ambient light for general illumination
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0); // increased direct light
-  directionalLight.position.set(3, 3, 3);
+  // Main directional light (sun)
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  directionalLight.position.set(5, 5, 2);
   directionalLight.castShadow = true;
+
+  // Improve shadow quality
+  directionalLight.shadow.mapSize.width = 2048;
+  directionalLight.shadow.mapSize.height = 2048;
+  directionalLight.shadow.camera.near = 0.5;
+  directionalLight.shadow.camera.far = 50;
+  directionalLight.shadow.camera.left = -10;
+  directionalLight.shadow.camera.right = 10;
+  directionalLight.shadow.camera.top = 10;
+  directionalLight.shadow.camera.bottom = -10;
+  directionalLight.shadow.bias = -0.0001;
   scene.add(directionalLight);
+
+  // Add point lights around the scene for local illumination
+  const pointLights = [
+    { position: [3, 2, 3], color: 0xffcc77, intensity: 0.3 },
+    { position: [-3, 2, -3], color: 0x77ccff, intensity: 0.3 },
+    { position: [3, 2, -3], color: 0xff77cc, intensity: 0.3 },
+    { position: [-3, 2, 3], color: 0x77ffcc, intensity: 0.3 },
+  ];
+
+  pointLights.forEach((light) => {
+    const pointLight = new THREE.PointLight(light.color, light.intensity, 6);
+    pointLight.position.set(...light.position);
+    pointLight.castShadow = true;
+    pointLight.shadow.mapSize.width = 512;
+    pointLight.shadow.mapSize.height = 512;
+    pointLight.shadow.camera.near = 0.1;
+    pointLight.shadow.camera.far = 10;
+    scene.add(pointLight);
+
+    // Add light helper sphere (optional, for debugging)
+    // const sphereGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    // const sphereMaterial = new THREE.MeshBasicMaterial({ color: light.color });
+    // const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    // sphere.position.copy(pointLight.position);
+    // scene.add(sphere);
+  });
+
+  // Configure renderer for better shadows
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.8;
 
   // Ground - with grass texture
   const textureLoader = new THREE.TextureLoader();
@@ -206,7 +251,7 @@ function createItems() {
     const material = new THREE.MeshStandardMaterial({
       color: itemType.color,
       emissive: itemType.color,
-      emissiveIntensity: 0.2,
+      emissiveIntensity: 0.1,
       roughness: 0.3,
       metalness: 0.2,
     });
