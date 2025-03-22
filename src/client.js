@@ -58,6 +58,15 @@ function init() {
   renderer.shadowMap.enabled = true;
   document.getElementById("canvas-container").appendChild(renderer.domElement);
 
+  // Add OrbitControls
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; // Add smooth damping
+  controls.dampingFactor = 0.05;
+  controls.minDistance = 3; // Minimum zoom distance
+  controls.maxDistance = 10; // Maximum zoom distance
+  controls.maxPolarAngle = Math.PI / 2; // Prevent camera going below ground
+  controls.enablePan = false; // Disable panning for simplicity
+
   // Lighting
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // increased ambient light
   scene.add(ambientLight);
@@ -189,11 +198,8 @@ function onMouseMove(event) {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Rotate camera around the scene - slower rotation for watch
-  const time = Date.now() * 0.001;
-  camera.position.x = Math.sin(time * 0.3) * 5;
-  camera.position.z = Math.cos(time * 0.3) * 5;
-  camera.lookAt(0, 0, 0);
+  // Update controls
+  controls.update();
 
   // Animate dog based on current animation
   animateDog();
