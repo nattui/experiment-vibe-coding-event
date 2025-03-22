@@ -23,6 +23,11 @@ let scene, camera, renderer, dog, ground, controls;
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let environmentItems = []; // Array to store environment items
+let currentView = "third-person";
+let thirdPersonCamera = {
+  position: new THREE.Vector3(0, 3, 5),
+  target: new THREE.Vector3(0, 0, 0),
+};
 
 function init() {
   // Scene setup
@@ -38,6 +43,31 @@ function init() {
     isMenuVisible = !isMenuVisible;
     uiOverlay.classList.toggle("hidden");
     menuToggle.textContent = isMenuVisible ? "☰" : "☰";
+  });
+
+  // Add camera view controls
+  const thirdPersonBtn = document.getElementById("third-person");
+  const firstPersonBtn = document.getElementById("first-person");
+
+  thirdPersonBtn.addEventListener("click", () => {
+    thirdPersonBtn.classList.add("active");
+    firstPersonBtn.classList.remove("active");
+    currentView = "third-person";
+
+    // Reset orbit controls
+    controls.enabled = true;
+    controls.minDistance = 3;
+    controls.maxDistance = 15;
+    controls.maxPolarAngle = Math.PI / 1.5;
+  });
+
+  firstPersonBtn.addEventListener("click", () => {
+    firstPersonBtn.classList.add("active");
+    thirdPersonBtn.classList.remove("active");
+    currentView = "first-person";
+
+    // Disable orbit controls in first person
+    controls.enabled = false;
   });
 
   // Camera setup - adjusted for watch screen
@@ -424,7 +454,12 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Update controls
-  controls.update();
+  if (currentView === "third-person") {
+    controls.update();
+  }
+
+  // Update camera position
+  updateCamera();
 
   // Animate environment items
   const time = Date.now() * 0.001;
@@ -510,6 +545,32 @@ function animateDog() {
       dog.rotation.y = 0;
       dog.position.y = baseHeight;
       break;
+  }
+}
+
+function updateCamera() {
+  if (!dog) return;
+
+  if (currentView === "first-person") {
+    // Position camera at dog's head height and slightly forward
+    const dogWorldPosition = new THREE.Vector3();
+    dog.getWorldPosition(dogWorldPosition);
+
+    // Calculate camera position based on dog's rotation
+    const cameraOffset = new THREE.Vector3(0, 1, 0.5); // Adjust these values to position camera
+    cameraOffset.applyQuaternion(dog.quaternion);
+
+    camera.position.copy(dogWorldPosition).add(cameraOffset);
+
+    // Calculate look target (slightly ahead of dog)
+    const lookOffset = new THREE.Vector3(0, 1, -2); // Look 2 units ahead
+    lookOffset.applyQuaternion(dog.quaternion);
+    const target = dogWorldPosition.clone().add(lookOffset);
+
+    camera.lookAt(target);
+  } else {
+    // In third-person view, let OrbitControls handle the camera
+    controls.target.copy(dog.position);
   }
 }
 

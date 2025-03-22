@@ -154,6 +154,36 @@
           font-size: 8px;
         }
       }
+      #camera-controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+      }
+      .camera-btn {
+        background-color: rgba(26, 26, 26, 0.8);
+        color: white;
+        border: 2px solid #4a4a4a;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: all 0.2s;
+      }
+      .camera-btn:active {
+        background-color: #666;
+        transform: scale(0.95);
+      }
+      .camera-btn.active {
+        background-color: #4a90e2;
+        border-color: #357abd;
+      }
     </style>
   </head>
   <body>
@@ -185,6 +215,12 @@
         <div class="inventory" id="inventory">
           <!-- Items will be added here dynamically -->
         </div>
+      </div>
+      <div id="camera-controls">
+        <button id="third-person" class="camera-btn active">
+          Third Person
+        </button>
+        <button id="first-person" class="camera-btn">Dog View</button>
       </div>
       <div id="canvas-container"></div>
       <div id="crosshair">+</div>
