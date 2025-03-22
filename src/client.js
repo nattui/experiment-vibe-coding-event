@@ -77,12 +77,33 @@ function init() {
   directionalLight.castShadow = true;
   scene.add(directionalLight);
 
-  // Ground - smaller size for watch
-  const groundGeometry = new THREE.PlaneGeometry(10, 10);
+  // Ground - with grass texture
+  const textureLoader = new THREE.TextureLoader();
+
+  // Load grass textures
+  const grassTexture = textureLoader.load(
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/terrain/grasslight-big.jpg"
+  );
+  const grassNormal = textureLoader.load(
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/terrain/grasslight-big-nm.jpg"
+  );
+
+  // Configure texture wrapping and repeat
+  grassTexture.wrapS = THREE.RepeatWrapping;
+  grassTexture.wrapT = THREE.RepeatWrapping;
+  grassTexture.repeat.set(4, 4);
+
+  grassNormal.wrapS = THREE.RepeatWrapping;
+  grassNormal.wrapT = THREE.RepeatWrapping;
+  grassNormal.repeat.set(4, 4);
+
+  const groundGeometry = new THREE.PlaneGeometry(10, 10, 32, 32);
   const groundMaterial = new THREE.MeshStandardMaterial({
-    color: 0x4a4a4a,
-    roughness: 0.8,
-    metalness: 0.2,
+    map: grassTexture,
+    normalMap: grassNormal,
+    normalScale: new THREE.Vector2(1, 1),
+    roughness: 0.6,
+    metalness: 0.1,
   });
   ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
