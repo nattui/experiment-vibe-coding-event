@@ -79,7 +79,7 @@ function init() {
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // Create dog
+  // Create dog using GLB model
   createDog();
 
   // Add some toys and food items
@@ -95,46 +95,38 @@ function init() {
 }
 
 function createDog() {
-  // Create a simple dog model using basic geometries - smaller size
-  const body = new THREE.BoxGeometry(0.5, 0.25, 1);
-  const head = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-  const leg1 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
-  const leg2 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
-  const leg3 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
-  const leg4 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
+  const loader = new THREE.GLTFLoader();
 
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x8b4513,
-    roughness: 0.7,
-    metalness: 0.3,
-  });
+  loader.load(
+    "./assets/dog.glb",
+    function (gltf) {
+      dog = gltf.scene;
 
-  dog = new THREE.Group();
+      // Scale the model to fit the scene
+      dog.scale.set(2, 2, 2);
 
-  const bodyMesh = new THREE.Mesh(body, material);
-  const headMesh = new THREE.Mesh(head, material);
-  const leg1Mesh = new THREE.Mesh(leg1, material);
-  const leg2Mesh = new THREE.Mesh(leg2, material);
-  const leg3Mesh = new THREE.Mesh(leg3, material);
-  const leg4Mesh = new THREE.Mesh(leg4, material);
+      // Position the dog - raised above ground
+      dog.position.set(0, 0.5, 0);
 
-  bodyMesh.position.y = 0.375;
-  headMesh.position.set(0.5, 0.55, 0);
-  leg1Mesh.position.set(-0.2, 0, -0.4);
-  leg2Mesh.position.set(0.2, 0, -0.4);
-  leg3Mesh.position.set(-0.2, 0, 0.4);
-  leg4Mesh.position.set(0.2, 0, 0.4);
+      // Enable shadows
+      dog.traverse((node) => {
+        if (node.isMesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
 
-  dog.add(bodyMesh);
-  dog.add(headMesh);
-  dog.add(leg1Mesh);
-  dog.add(leg2Mesh);
-  dog.add(leg3Mesh);
-  dog.add(leg4Mesh);
-
-  dog.castShadow = true;
-  dog.receiveShadow = true;
-  scene.add(dog);
+      scene.add(dog);
+    },
+    // Progress callback
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    // Error callback
+    function (error) {
+      console.error("Error loading dog model:", error);
+    }
+  );
 }
 
 function createItems() {
@@ -211,25 +203,30 @@ function animate() {
 
 function animateDog() {
   const time = Date.now() * 0.001;
+  if (!dog) return; // Skip animation if dog model isn't loaded yet
+
+  const baseHeight = 0.5; // Base height to keep dog above ground
+
   switch (gameState.currentAnimation) {
     case "idle":
       dog.rotation.y = Math.sin(time) * 0.1;
+      dog.position.y = baseHeight;
       break;
     case "happy":
       dog.rotation.y = Math.sin(time * 2) * 0.3;
-      dog.position.y = Math.sin(time * 4) * 0.2 + 0.75;
+      dog.position.y = Math.sin(time * 4) * 0.2 + baseHeight;
       break;
     case "eating":
       dog.rotation.y = Math.sin(time * 3) * 0.2;
-      dog.position.y = Math.sin(time * 6) * 0.1 + 0.75;
+      dog.position.y = Math.sin(time * 6) * 0.1 + baseHeight;
       break;
     case "playing":
       dog.rotation.y = Math.sin(time * 4) * 0.5;
-      dog.position.y = Math.sin(time * 8) * 0.3 + 0.75;
+      dog.position.y = Math.sin(time * 8) * 0.3 + baseHeight;
       break;
     case "sleeping":
       dog.rotation.y = 0;
-      dog.position.y = 0.75;
+      dog.position.y = baseHeight;
       break;
   }
 }
