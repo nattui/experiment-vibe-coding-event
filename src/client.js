@@ -161,6 +161,20 @@ function init() {
   // Add some toys and food items
   createItems();
 
+  // Add trees around the scene
+  const trees = [
+    { x: 4, z: 4 },
+    { x: -4, z: -4 },
+    { x: 4, z: -4 },
+    { x: -4, z: 4 },
+    { x: 0, z: 4.5 },
+  ];
+
+  trees.forEach((pos) => {
+    const tree = createTree(pos.x, pos.z);
+    scene.add(tree);
+  });
+
   // Event listeners
   window.addEventListener("resize", onWindowResize, false);
   window.addEventListener("click", onMouseClick, false);
@@ -335,6 +349,49 @@ function createItems() {
   // Position the dog house
   dogHouse.position.set(-3, 0, -3);
   scene.add(dogHouse);
+}
+
+function createTree(x, z) {
+  const tree = new THREE.Group();
+
+  // Create trunk
+  const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 1.5, 8);
+  const trunkMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8b4513,
+    roughness: 0.9,
+    metalness: 0.1,
+  });
+  const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+  trunk.position.y = 0.75;
+  trunk.castShadow = true;
+  trunk.receiveShadow = true;
+
+  // Create leaves (multiple layers for fuller look)
+  const leafColors = [0x2d5a27, 0x3a7a32, 0x1d3d1b];
+  const leafSizes = [1.2, 0.9, 0.6];
+  const leafHeights = [1.5, 1.8, 2.1];
+
+  leafSizes.forEach((size, i) => {
+    const leafGeometry = new THREE.ConeGeometry(size, 1.2, 8);
+    const leafMaterial = new THREE.MeshStandardMaterial({
+      color: leafColors[i],
+      roughness: 0.8,
+      metalness: 0.1,
+    });
+    const leaves = new THREE.Mesh(leafGeometry, leafMaterial);
+    leaves.position.y = leafHeights[i];
+    leaves.castShadow = true;
+    leaves.receiveShadow = true;
+    tree.add(leaves);
+  });
+
+  tree.add(trunk);
+  tree.position.set(x, 0, z);
+
+  // Add some random rotation for variety
+  tree.rotation.y = Math.random() * Math.PI * 2;
+
+  return tree;
 }
 
 function onWindowResize() {
