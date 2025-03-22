@@ -4,9 +4,9 @@ const gameState = {
   hunger: 100,
   energy: 100,
   inventory: [
-    { id: "food", name: "Food", count: 5, icon: "🍖" },
-    { id: "toy", name: "Toy", count: 3, icon: "🎾" },
-    { id: "treat", name: "Treat", count: 2, icon: "🍪" },
+    { id: "food", name: "Food", count: "∞", icon: "🍖" },
+    { id: "toy", name: "Toy", count: "∞", icon: "🎾" },
+    { id: "treat", name: "Treat", count: "∞", icon: "🍪" },
   ],
   animations: {
     idle: "idle",
@@ -370,8 +370,7 @@ function updateInventory() {
 // Use an item from inventory
 function useItem(itemId) {
   const item = gameState.inventory.find((i) => i.id === itemId);
-  if (item && item.count > 0) {
-    item.count--;
+  if (item) {
     switch (itemId) {
       case "food":
         feed();
