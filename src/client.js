@@ -16,6 +16,13 @@ const gameState = {
     sleeping: "sleeping",
   },
   currentAnimation: "idle",
+  movement: {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    speed: 0.1,
+  },
 };
 
 // Three.js setup
@@ -209,6 +216,10 @@ function init() {
   window.addEventListener("resize", onWindowResize, false);
   window.addEventListener("click", onMouseClick, false);
   window.addEventListener("mousemove", onMouseMove, false);
+
+  // Add keyboard controls
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
 
   // Start animation loop
   animate();
@@ -505,46 +516,91 @@ function animateDog() {
 
   const baseHeight = 0.5; // Base height to keep dog above ground
 
-  switch (gameState.currentAnimation) {
-    case "idle":
-      // Random wandering movement
-      const wanderRadius = 3;
-      const wanderSpeed = 0.3;
+  // Handle keyboard movement
+  if (
+    gameState.movement.forward ||
+    gameState.movement.backward ||
+    gameState.movement.left ||
+    gameState.movement.right
+  ) {
+    gameState.currentAnimation = "playing";
 
-      // Calculate target position using time-based sine waves with different frequencies
-      const targetX =
-        Math.sin(time * 0.4) * Math.cos(time * 0.3) * wanderRadius;
-      const targetZ =
-        Math.cos(time * 0.3) * Math.sin(time * 0.5) * wanderRadius;
+    // Calculate movement direction
+    let moveX = 0;
+    let moveZ = 0;
 
-      // Smoothly move towards target
-      dog.position.x += (targetX - dog.position.x) * 0.02;
-      dog.position.z += (targetZ - dog.position.z) * 0.02;
-      dog.position.y = baseHeight + Math.sin(time * 2) * 0.05; // Gentle bobbing
+    if (gameState.movement.forward) moveZ -= gameState.movement.speed;
+    if (gameState.movement.backward) moveZ += gameState.movement.speed;
+    if (gameState.movement.left) moveX -= gameState.movement.speed;
+    if (gameState.movement.right) moveX += gameState.movement.speed;
 
-      // Rotate to face movement direction
-      const angle = Math.atan2(
-        targetX - dog.position.x,
-        targetZ - dog.position.z
-      );
+    // Normalize diagonal movement
+    if (moveX !== 0 && moveZ !== 0) {
+      const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
+      moveX /= length;
+      moveZ /= length;
+    }
+
+    // Update position
+    dog.position.x += moveX;
+    dog.position.z += moveZ;
+
+    // Update rotation to face movement direction
+    if (moveX !== 0 || moveZ !== 0) {
+      const angle = Math.atan2(moveX, moveZ);
       dog.rotation.y = angle;
-      break;
-    case "happy":
-      dog.rotation.y = Math.sin(time * 2) * 0.3;
-      dog.position.y = Math.sin(time * 4) * 0.2 + baseHeight;
-      break;
-    case "eating":
-      dog.rotation.y = Math.sin(time * 3) * 0.2;
-      dog.position.y = Math.sin(time * 6) * 0.1 + baseHeight;
-      break;
-    case "playing":
-      dog.rotation.y = Math.sin(time * 4) * 0.5;
-      dog.position.y = Math.sin(time * 8) * 0.3 + baseHeight;
-      break;
-    case "sleeping":
-      dog.rotation.y = 0;
-      dog.position.y = baseHeight;
-      break;
+    }
+
+    // Add slight bobbing motion while moving
+    dog.position.y = baseHeight + Math.sin(time * 8) * 0.05;
+
+    // Update energy and hunger while moving
+    gameState.energy = Math.max(0, gameState.energy - 0.1);
+    gameState.hunger = Math.max(0, gameState.hunger - 0.05);
+    updateStatus();
+  } else {
+    // Default idle animation when not moving
+    switch (gameState.currentAnimation) {
+      case "idle":
+        // Random wandering movement
+        const wanderRadius = 3;
+        const wanderSpeed = 0.3;
+
+        // Calculate target position using time-based sine waves with different frequencies
+        const targetX =
+          Math.sin(time * 0.4) * Math.cos(time * 0.3) * wanderRadius;
+        const targetZ =
+          Math.cos(time * 0.3) * Math.sin(time * 0.5) * wanderRadius;
+
+        // Smoothly move towards target
+        dog.position.x += (targetX - dog.position.x) * 0.02;
+        dog.position.z += (targetZ - dog.position.z) * 0.02;
+        dog.position.y = baseHeight + Math.sin(time * 2) * 0.05; // Gentle bobbing
+
+        // Rotate to face movement direction
+        const angle = Math.atan2(
+          targetX - dog.position.x,
+          targetZ - dog.position.z
+        );
+        dog.rotation.y = angle;
+        break;
+      case "happy":
+        dog.rotation.y = Math.sin(time * 2) * 0.3;
+        dog.position.y = Math.sin(time * 4) * 0.2 + baseHeight;
+        break;
+      case "eating":
+        dog.rotation.y = Math.sin(time * 3) * 0.2;
+        dog.position.y = Math.sin(time * 6) * 0.1 + baseHeight;
+        break;
+      case "playing":
+        dog.rotation.y = Math.sin(time * 4) * 0.5;
+        dog.position.y = Math.sin(time * 8) * 0.3 + baseHeight;
+        break;
+      case "sleeping":
+        dog.rotation.y = 0;
+        dog.position.y = baseHeight;
+        break;
+    }
   }
 }
 
@@ -711,6 +767,41 @@ setInterval(() => {
   gameState.energy = Math.max(0, gameState.energy - 1);
   updateStatus();
 }, 10000);
+
+// Add keyboard control functions
+function onKeyDown(event) {
+  switch (event.code) {
+    case "KeyW":
+      gameState.movement.forward = true;
+      break;
+    case "KeyS":
+      gameState.movement.backward = true;
+      break;
+    case "KeyA":
+      gameState.movement.left = true;
+      break;
+    case "KeyD":
+      gameState.movement.right = true;
+      break;
+  }
+}
+
+function onKeyUp(event) {
+  switch (event.code) {
+    case "KeyW":
+      gameState.movement.forward = false;
+      break;
+    case "KeyS":
+      gameState.movement.backward = false;
+      break;
+    case "KeyA":
+      gameState.movement.left = false;
+      break;
+    case "KeyD":
+      gameState.movement.right = false;
+      break;
+  }
+}
 
 // Initialize the game
 init();
