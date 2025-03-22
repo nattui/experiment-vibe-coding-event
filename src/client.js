@@ -28,33 +28,47 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x2c2137);
 
-  // Camera setup
+  // Add menu toggle functionality
+  const menuToggle = document.getElementById("menu-toggle");
+  const uiOverlay = document.getElementById("ui-overlay");
+  let isMenuVisible = true;
+
+  menuToggle.addEventListener("click", () => {
+    isMenuVisible = !isMenuVisible;
+    uiOverlay.classList.toggle("hidden");
+    menuToggle.textContent = isMenuVisible ? "☰" : "☰";
+  });
+
+  // Camera setup - adjusted for watch screen
   camera = new THREE.PerspectiveCamera(
-    75,
+    60, // narrower field of view
     window.innerWidth / window.innerHeight,
     0.1,
     1000
   );
-  camera.position.set(0, 5, 10);
+  camera.position.set(0, 3, 5); // closer to the scene
   camera.lookAt(0, 0, 0);
 
   // Renderer setup
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true, // enable transparency
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   document.getElementById("canvas-container").appendChild(renderer.domElement);
 
   // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // increased ambient light
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 5, 5);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0); // increased direct light
+  directionalLight.position.set(3, 3, 3);
   directionalLight.castShadow = true;
   scene.add(directionalLight);
 
-  // Ground
-  const groundGeometry = new THREE.PlaneGeometry(20, 20);
+  // Ground - smaller size for watch
+  const groundGeometry = new THREE.PlaneGeometry(10, 10);
   const groundMaterial = new THREE.MeshStandardMaterial({
     color: 0x4a4a4a,
     roughness: 0.8,
@@ -81,13 +95,13 @@ function init() {
 }
 
 function createDog() {
-  // Create a simple dog model using basic geometries
-  const body = new THREE.BoxGeometry(1, 0.5, 2);
-  const head = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-  const leg1 = new THREE.BoxGeometry(0.2, 1, 0.2);
-  const leg2 = new THREE.BoxGeometry(0.2, 1, 0.2);
-  const leg3 = new THREE.BoxGeometry(0.2, 1, 0.2);
-  const leg4 = new THREE.BoxGeometry(0.2, 1, 0.2);
+  // Create a simple dog model using basic geometries - smaller size
+  const body = new THREE.BoxGeometry(0.5, 0.25, 1);
+  const head = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+  const leg1 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
+  const leg2 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
+  const leg3 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
+  const leg4 = new THREE.BoxGeometry(0.1, 0.5, 0.1);
 
   const material = new THREE.MeshStandardMaterial({
     color: 0x8b4513,
@@ -104,12 +118,12 @@ function createDog() {
   const leg3Mesh = new THREE.Mesh(leg3, material);
   const leg4Mesh = new THREE.Mesh(leg4, material);
 
-  bodyMesh.position.y = 0.75;
-  headMesh.position.set(1, 1.1, 0);
-  leg1Mesh.position.set(-0.4, 0, -0.8);
-  leg2Mesh.position.set(0.4, 0, -0.8);
-  leg3Mesh.position.set(-0.4, 0, 0.8);
-  leg4Mesh.position.set(0.4, 0, 0.8);
+  bodyMesh.position.y = 0.375;
+  headMesh.position.set(0.5, 0.55, 0);
+  leg1Mesh.position.set(-0.2, 0, -0.4);
+  leg2Mesh.position.set(0.2, 0, -0.4);
+  leg3Mesh.position.set(-0.2, 0, 0.4);
+  leg4Mesh.position.set(0.2, 0, 0.4);
 
   dog.add(bodyMesh);
   dog.add(headMesh);
@@ -124,20 +138,20 @@ function createDog() {
 }
 
 function createItems() {
-  // Create some interactive items in the scene
+  // Create some interactive items in the scene - smaller size
   const items = [
     {
-      geometry: new THREE.SphereGeometry(0.3, 16, 16),
+      geometry: new THREE.SphereGeometry(0.15, 16, 16),
       color: 0xff0000,
       type: "toy",
     },
     {
-      geometry: new THREE.BoxGeometry(0.5, 0.5, 0.5),
+      geometry: new THREE.BoxGeometry(0.25, 0.25, 0.25),
       color: 0x00ff00,
       type: "food",
     },
     {
-      geometry: new THREE.CylinderGeometry(0.2, 0.2, 0.5, 16),
+      geometry: new THREE.CylinderGeometry(0.1, 0.1, 0.25, 16),
       color: 0x0000ff,
       type: "treat",
     },
@@ -146,7 +160,7 @@ function createItems() {
   items.forEach((item, index) => {
     const material = new THREE.MeshStandardMaterial({ color: item.color });
     const mesh = new THREE.Mesh(item.geometry, material);
-    mesh.position.set((index - 1) * 3, 0.5, (index - 1) * 2);
+    mesh.position.set((index - 1) * 1.5, 0.25, (index - 1) * 1);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.userData.type = item.type;
@@ -183,10 +197,10 @@ function onMouseMove(event) {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Rotate camera around the scene
+  // Rotate camera around the scene - slower rotation for watch
   const time = Date.now() * 0.001;
-  camera.position.x = Math.sin(time * 0.5) * 10;
-  camera.position.z = Math.cos(time * 0.5) * 10;
+  camera.position.x = Math.sin(time * 0.3) * 5;
+  camera.position.z = Math.cos(time * 0.3) * 5;
   camera.lookAt(0, 0, 0);
 
   // Animate dog based on current animation
