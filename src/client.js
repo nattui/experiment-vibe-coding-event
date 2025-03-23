@@ -23,6 +23,14 @@ const gameState = {
     right: false,
     speed: 0.1,
   },
+  joystick: {
+    active: false,
+    x: 0,
+    y: 0,
+    baseX: 0,
+    baseY: 0,
+    radius: 60, // Half of joystick container width
+  },
 };
 
 // Three.js setup
@@ -220,6 +228,46 @@ function init() {
   // Add keyboard controls
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
+
+  // Add touch controls for mobile
+  const joystickContainer = document.getElementById("joystick-container");
+  const joystickStick = document.getElementById("joystick-stick");
+
+  joystickContainer.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = joystickContainer.getBoundingClientRect();
+
+    gameState.joystick.active = true;
+    gameState.joystick.baseX = rect.left + rect.width / 2;
+    gameState.joystick.baseY = rect.top + rect.height / 2;
+
+    updateJoystickPosition(touch.clientX, touch.clientY);
+    joystickStick.classList.add("active");
+  });
+
+  joystickContainer.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    if (gameState.joystick.active) {
+      const touch = e.touches[0];
+      updateJoystickPosition(touch.clientX, touch.clientY);
+    }
+  });
+
+  joystickContainer.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    gameState.joystick.active = false;
+    gameState.joystick.x = 0;
+    gameState.joystick.y = 0;
+    joystickStick.classList.remove("active");
+    joystickStick.style.transform = "translate(0, 0)";
+
+    // Reset movement state
+    gameState.movement.forward = false;
+    gameState.movement.backward = false;
+    gameState.movement.left = false;
+    gameState.movement.right = false;
+  });
 
   // Start animation loop
   animate();
@@ -801,6 +849,36 @@ function onKeyUp(event) {
       gameState.movement.right = false;
       break;
   }
+}
+
+function updateJoystickPosition(clientX, clientY) {
+  const dx = clientX - gameState.joystick.baseX;
+  const dy = clientY - gameState.joystick.baseY;
+
+  // Calculate distance from center
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  // If outside radius, clamp to radius
+  if (distance > gameState.joystick.radius) {
+    const angle = Math.atan2(dy, dx);
+    gameState.joystick.x = Math.cos(angle) * gameState.joystick.radius;
+    gameState.joystick.y = Math.sin(angle) * gameState.joystick.radius;
+  } else {
+    gameState.joystick.x = dx;
+    gameState.joystick.y = dy;
+  }
+
+  // Update stick visual position
+  const joystickStick = document.getElementById("joystick-stick");
+  joystickStick.style.transform = `translate(${gameState.joystick.x}px, ${gameState.joystick.y}px)`;
+
+  // Update movement state based on joystick position
+  const threshold = 20; // Minimum distance to trigger movement
+
+  gameState.movement.forward = gameState.joystick.y < -threshold;
+  gameState.movement.backward = gameState.joystick.y > threshold;
+  gameState.movement.left = gameState.joystick.x < -threshold;
+  gameState.movement.right = gameState.joystick.x > threshold;
 }
 
 // Initialize the game
