@@ -262,7 +262,7 @@ function createDog() {
   const loader = new GLTFLoader();
 
   loader.load(
-    "./assets/dog.glb",
+    "/dog.glb",
     function (gltf) {
       dog = gltf.scene;
 
