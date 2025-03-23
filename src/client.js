@@ -21,7 +21,7 @@ const gameState = {
     backward: false,
     left: false,
     right: false,
-    speed: 0.1,
+    speed: 0.05,
   },
   joystick: {
     active: false,
