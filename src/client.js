@@ -30,6 +30,7 @@ const gameState = {
     baseX: 0,
     baseY: 0,
     radius: 60, // Half of joystick container width
+    sensitivity: 0.5, // Add sensitivity factor (0.5 = half speed)
   },
 };
 
@@ -577,16 +578,20 @@ function animateDog() {
     let moveX = 0;
     let moveZ = 0;
 
-    if (gameState.movement.forward) moveZ -= gameState.movement.speed;
-    if (gameState.movement.backward) moveZ += gameState.movement.speed;
-    if (gameState.movement.left) moveX -= gameState.movement.speed;
-    if (gameState.movement.right) moveX += gameState.movement.speed;
+    if (gameState.movement.forward) moveZ -= 1;
+    if (gameState.movement.backward) moveZ += 1;
+    if (gameState.movement.left) moveX -= 1;
+    if (gameState.movement.right) moveX += 1;
 
-    // Normalize diagonal movement
+    // Normalize diagonal movement to ensure consistent speed
     if (moveX !== 0 && moveZ !== 0) {
       const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
-      moveX /= length;
-      moveZ /= length;
+      moveX = (moveX / length) * gameState.movement.speed;
+      moveZ = (moveZ / length) * gameState.movement.speed;
+    } else {
+      // For non-diagonal movement, apply speed directly
+      moveX *= gameState.movement.speed;
+      moveZ *= gameState.movement.speed;
     }
 
     // Update position
@@ -872,13 +877,15 @@ function updateJoystickPosition(clientX, clientY) {
   const joystickStick = document.getElementById("joystick-stick");
   joystickStick.style.transform = `translate(${gameState.joystick.x}px, ${gameState.joystick.y}px)`;
 
-  // Update movement state based on joystick position
-  const threshold = 20; // Minimum distance to trigger movement
+  // Update movement state based on joystick position with increased threshold and sensitivity
+  const threshold = 30; // Increased from 20 to 30 for more precise control
+  const sensitivity = gameState.joystick.sensitivity;
 
-  gameState.movement.forward = gameState.joystick.y < -threshold;
-  gameState.movement.backward = gameState.joystick.y > threshold;
-  gameState.movement.left = gameState.joystick.x < -threshold;
-  gameState.movement.right = gameState.joystick.x > threshold;
+  // Apply sensitivity to movement
+  gameState.movement.forward = gameState.joystick.y < -threshold * sensitivity;
+  gameState.movement.backward = gameState.joystick.y > threshold * sensitivity;
+  gameState.movement.left = gameState.joystick.x < -threshold * sensitivity;
+  gameState.movement.right = gameState.joystick.x > threshold * sensitivity;
 }
 
 // Initialize the game
