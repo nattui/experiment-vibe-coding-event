@@ -1,8 +1,17 @@
 {
-  "name": "bun-web-app",
+  "name": "experiment-vibe-coding-event",
   "version": "1.0.0",
+  "description": "A 3D dog pet game",
   "type": "module",
   "scripts": {
-    "start": "bun run --hot src/index.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.128.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
   }
 }

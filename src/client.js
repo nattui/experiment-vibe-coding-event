@@ -1,3 +1,7 @@
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
 // Game state
 const gameState = {
   happiness: 100,
@@ -106,7 +110,7 @@ function init() {
   document.getElementById("canvas-container").appendChild(renderer.domElement);
 
   // Add OrbitControls
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; // Add smooth damping
   controls.dampingFactor = 0.05;
   controls.minDistance = 3; // Minimum zoom distance
@@ -168,33 +172,13 @@ function init() {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.8;
 
-  // Ground - with grass texture
-  const textureLoader = new THREE.TextureLoader();
-
-  // Load grass textures
-  const grassTexture = textureLoader.load(
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/terrain/grasslight-big.jpg"
-  );
-  const grassNormal = textureLoader.load(
-    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/terrain/grasslight-big-nm.jpg"
-  );
-
-  // Configure texture wrapping and repeat
-  grassTexture.wrapS = THREE.RepeatWrapping;
-  grassTexture.wrapT = THREE.RepeatWrapping;
-  grassTexture.repeat.set(4, 4);
-
-  grassNormal.wrapS = THREE.RepeatWrapping;
-  grassNormal.wrapT = THREE.RepeatWrapping;
-  grassNormal.repeat.set(4, 4);
-
+  // Ground - with simple material
   const groundGeometry = new THREE.PlaneGeometry(10, 10, 32, 32);
   const groundMaterial = new THREE.MeshStandardMaterial({
-    map: grassTexture,
-    normalMap: grassNormal,
-    normalScale: new THREE.Vector2(1, 1),
-    roughness: 0.6,
+    color: 0x3a7a32, // Green color for grass
+    roughness: 0.8,
     metalness: 0.1,
+    side: THREE.DoubleSide,
   });
   ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
@@ -275,7 +259,7 @@ function init() {
 }
 
 function createDog() {
-  const loader = new THREE.GLTFLoader();
+  const loader = new GLTFLoader();
 
   loader.load(
     "./assets/dog.glb",
@@ -887,6 +871,16 @@ function updateJoystickPosition(clientX, clientY) {
   gameState.movement.left = gameState.joystick.x < -threshold * sensitivity;
   gameState.movement.right = gameState.joystick.x > threshold * sensitivity;
 }
+
+// Expose game actions to window for HTML button onclick handlers
+window.gameActions = {
+  play,
+  feed,
+  sleep,
+  pet,
+  walk,
+  train,
+};
 
 // Initialize the game
 init();
